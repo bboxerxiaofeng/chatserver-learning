@@ -2,6 +2,8 @@
 #include <iostream>
 #include <functional>
 #include <string>
+#include "chatservice.h"
+
 using namespace std;
 using namespace placeholders;
 
@@ -47,5 +49,13 @@ void ChatServer::onMessage(const TcpConnectionPtr &conn, // 连接
 {
     string buf = buffer->retrieveAllAsString();
     std::cout << "recv data:" << buf << " time:" << time.toFormattedString() << std::endl;
-    conn->send(buf);
+    //conn->send(buf);
+    // 数据反序列化
+    json oJson(buf);
+    // 通过解析json获取业务的handler
+    int msgid;
+    oJson.Get("msgid",msgid);
+    auto msgHander = ChatService::instance()->getHandler(msgid);
+    // 回调消息绑定好的事件处理器，来执行相对应的函数
+    msgHander(conn,oJson,time);
 }
