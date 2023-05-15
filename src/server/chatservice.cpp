@@ -1,6 +1,7 @@
 #include "chatservice.h"
 #include "public.h"
 #include <muduo/base/Logging.h>
+#include <iostream>
 
 // 获取单例对象的接口函数
 ChatService* ChatService::instance()
@@ -40,8 +41,35 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
     LOG_INFO << "do login..." ;
 }
 
-// 处理登录业务
+// 处理注册业务
 void ChatService::reg(const TcpConnectionPtr &conn,json &js,Timestamp time)
 {
     LOG_INFO << "do reg..." ;
+    string name,pwd;
+    js.Get("name",name);
+    js.Get("password",pwd);
+
+    User user;
+    user.setName(name);
+    user.setPwd(pwd);
+    bool state = _userModel.insert(user);
+    std::cout << state << std::endl;
+    if(state)
+    {
+        // 注册成功
+        json response;
+        response.Add("msgid","REG_MSG_ACK");
+        response.Add("error",0);
+        response.Add("id",user.getId());
+        cout << "response " << response.ToString() << endl;
+        conn->send(response.ToString());
+    }
+    else
+    {
+        // 注册失败
+        json response;
+        response.Add("msgid","REG_MSG_ACK");
+        response.Add("error",1);
+        conn->send(response.ToString());
+    }
 }
