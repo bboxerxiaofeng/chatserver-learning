@@ -43,10 +43,10 @@ User UserModel::query(int id)
             if(row != nullptr)
             {
                 User user;
-                user.setId(atoi(row[0]));
-                user.setName(row[1]);
-                user.setPwd(row[2]);
-                user.setState(row[3]);
+                user.setName(row[0]);
+                user.setPwd(row[1]);
+                user.setState(row[2]);
+                user.setId(atoi(row[3]));
                 mysql_free_result(res);
                 return user;
             }
