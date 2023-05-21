@@ -37,6 +37,7 @@ void ChatServer::onConnection(const TcpConnectionPtr &conn)
     else
     {
         std::cout << conn->peerAddress().toIpPort() << " -> " << conn->localAddress().toIpPort() << " state:offline" << std::endl;
+        ChatService::instance()->clientCloseException(conn);
         conn->shutdown(); // close(fd)
         // _loop->quit();
     }

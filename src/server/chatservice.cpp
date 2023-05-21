@@ -49,11 +49,17 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
     {
         if(user.getState() == "online") {
             // 该用户已经登录，不允许重复登录
+            cout << "该用户已经登录，不允许重复登录" << endl;
             json response;
             response.Add("msgid",LOGIN_MSG_ACK);
             response.Add("error",2);
             response.Add("errmsg","该账号已经登录,请重新输入新账号");
             conn->send(response.ToString());
+            {   
+                lock_guard<mutex> lock(_connMutex);
+                // _userConnMap.insert({id,conn});  // 调用一次构造，两次拷贝构造
+                _userConnMap.emplace(id,conn);  // 调用一次构造，一次拷贝构造
+            }
 
         }else if(user.getState() == "offline") {
             // 登录成功，记录用户连接信息，因为onMessage是个多线程操作，所以这里也要考虑线程安全问题
@@ -65,8 +71,9 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
                 // _userConnMap.insert({id,conn});  // 调用一次构造，两次拷贝构造
                 _userConnMap.emplace(id,conn);  // 调用一次构造，一次拷贝构造
             }
+            cout << " 登录成功,更新用户状态信息" << endl;
             // 登录成功,更新用户状态信息 state offline=>online
-            user.setState("oneline");
+            user.setState("online");
             _userModel.updateState(user);   // 更新用户状态信息
 
             json response;
@@ -81,6 +88,7 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
     {
         if(user.getId() != id) {
             // 用户不存在
+            cout << " 用户不存在" << endl;
             json response;
             response.Add("msgid",LOGIN_MSG_ACK);
             response.Add("errno",1);
@@ -89,6 +97,7 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
 
         }else {
             // 用户存在但是密码错误
+            cout << " 用户存在但是密码错误" << endl;
             json response;
             response.Add("msgid",LOGIN_MSG_ACK);
             response.Add("errno",1);
@@ -128,5 +137,32 @@ void ChatService::reg(const TcpConnectionPtr &conn,json &js,Timestamp time)
         response.Add("msgid",REG_MSG_ACK);
         response.Add("error",1);
         conn->send(response.ToString());
+    }
+}
+
+void ChatService::clientCloseException(const TcpConnectionPtr &conn)
+{
+    cout << "clientCloseException: _userConnMap"<< _userConnMap.size() << endl;
+    User user;
+    {
+        lock_guard<mutex> lock(_connMutex);
+        for( auto it=_userConnMap.begin(); it != _userConnMap.end(); ++it)
+        {
+            cout << "id=" << it->first << endl;
+            if (it->second == conn)
+            {
+                // 从map表删除用户的链接信息
+                user.setId(it->first);
+                _userConnMap.erase(it);
+                break;
+            }
+        }
+    }
+
+    // 更新用户的状态信息
+    if(user.getId() != -1) // 表示有在map找到对应的用户
+    {
+        user.setState("offline");
+        _userModel.updateState(user);
     }
 }
