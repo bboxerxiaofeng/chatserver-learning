@@ -56,6 +56,15 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
             conn->send(response.ToString());
 
         }else if(user.getState() == "offline") {
+            // 登录成功，记录用户连接信息，因为onMessage是个多线程操作，所以这里也要考虑线程安全问题
+            // 这里用中括号括起来是让锁的范围尽可能小，
+            // 下面的数据库的线程安全数据库本身会操作，无需关心，
+            // json操作也是每调用一次就会创建栈对象，也无需关心
+            {   
+                lock_guard<mutex> lock(_connMutex);
+                // _userConnMap.insert({id,conn});  // 调用一次构造，两次拷贝构造
+                _userConnMap.emplace(id,conn);  // 调用一次构造，一次拷贝构造
+            }
             // 登录成功,更新用户状态信息 state offline=>online
             user.setState("oneline");
             _userModel.updateState(user);   // 更新用户状态信息
