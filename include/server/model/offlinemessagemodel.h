@@ -5,8 +5,9 @@
 #include <vector>
 using namespace std;
 
-// User表的数据操作类
-class OfflineMsgModel {
+// OfflineMessage表的数据操作类
+class OfflineMsgModel 
+{
 public:
     // 存储用户的离线消息
     void insert(int userid, string msg);

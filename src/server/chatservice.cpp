@@ -15,7 +15,8 @@ ChatService::ChatService()
 {
     _msgHandlerMap.insert({LOGIN_MSG,std::bind(&ChatService::login,this,_1,_2,_3)});
     _msgHandlerMap.insert({REG_MSG,std::bind(&ChatService::reg,this,_1,_2,_3)});
-    _msgHandlerMap.insert({ONECHAT_MSG,std::bind(&ChatService::OneChat,this,_1,_2,_3)});
+    _msgHandlerMap.insert({ONECHAT_MSG,std::bind(&ChatService::oneChat,this,_1,_2,_3)});
+    _msgHandlerMap.insert({ADDFRIEND_MSG,std::bind(&ChatService::addFriend,this,_1,_2,_3)});
 }
 
 // 获取消息对应的处理器
@@ -87,14 +88,33 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
             vector<string> msg = _offlineMsgModel.query(id);
             if(!msg.empty())
             {
-                for(vector<string>::iterator msgit = msg.begin(); msgit != msg.end(); msgit++)
+                response.AddEmptySubArray("offlinemessage");
+                //for(vector<string>::iterator msgit = msg.begin(); msgit != msg.end(); msgit++)
+                for(auto &msgit : msg)
                 {
-                    response.AddEmptySubArray("offlinemessage");
-                    response["offlinemessage"].Add(*msgit);
+                    // response["offlinemessage"].Add(*msgit);
+                    response["offlinemessage"].Add(msgit);
                 }
                 // 读取该用户的离线消息后，把该用户的所有离线消息删除掉
                 _offlineMsgModel.remove(id);
             }
+
+
+            // 查询该用户的好友信息并返回
+            vector<User> userVec = _friendModel.query(id);
+            if(!userVec.empty())
+            {
+                response.AddEmptySubArray("friend");
+                for (User &user : userVec)
+                {
+                    json tmp;
+                    tmp.Add("name",user.getName());
+                    tmp.Add("state",user.getState());
+                    tmp.Add("id",user.getId());
+                    response["friend"].Add(tmp.ToString());
+                }
+            }
+
             conn->send(response.ToString());
         }
     }
@@ -182,9 +202,9 @@ void ChatService::clientCloseException(const TcpConnectionPtr &conn)
 }
 
 // 处理点对点聊天业务
-void ChatService::OneChat(const TcpConnectionPtr &conn,json &js,Timestamp time)
+void ChatService::oneChat(const TcpConnectionPtr &conn,json &js,Timestamp time)
 {
-    LOG_INFO << "do OneChat..." ;
+    LOG_INFO << "do oneChat..." ;
     int toid;
     js.Get("toid",toid);
 
@@ -207,4 +227,16 @@ void ChatService::reset()
 {
     // 把online状态的用户，设置成offline
     _userModel.resetState();
+}
+
+void ChatService::addFriend(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    LOG_INFO << "do addFriend..." ;
+    
+    int userid,friendid;
+    js.Get("id",userid);
+    js.Get("friendid",friendid);
+
+    // 存储好友信息
+    _friendModel.insert(userid, friendid);
 }

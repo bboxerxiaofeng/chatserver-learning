@@ -11,6 +11,7 @@ using namespace muduo::net;
 
 #include "usermodel.h"
 #include "offlinemessagemodel.h"
+#include "friendmodel.h"
 #include "CJsonObject.hpp"
 using json = neb::CJsonObject;
 
@@ -27,13 +28,15 @@ public:
     // 处理注册业务
     void reg(const TcpConnectionPtr &conn, json &js, Timestamp time);
     // 处理点对点聊天业务 
-    void OneChat(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    void oneChat(const TcpConnectionPtr &conn, json &js, Timestamp time);
     // 处理客户端异常退出
     void clientCloseException(const TcpConnectionPtr &conn);
     // 获取消息对应的处理器
     MsgHandler getHandler(int msgid);
     // 处理服务器异常退出
     void reset();
+    // 处理添加好友业务
+    void addFriend(const TcpConnectionPtr &conn, json &js, Timestamp time);
 private:
     ChatService();
 
@@ -46,6 +49,7 @@ private:
     // 数据操作类对象
     UserModel _userModel;
     OfflineMsgModel _offlineMsgModel;
+    FriendModel _friendModel;
 };
 
 #endif

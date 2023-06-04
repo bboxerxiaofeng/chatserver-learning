@@ -12,6 +12,7 @@ enum EnMsgType
     REG_MSG_ACK,     // 注册消息完成
     LOGIN_MSG_ACK,   // 登录消息完成
     ONECHAT_MSG,     // 点对点聊天消息
+    ADDFRIEND_MSG,   // 添加好友
 };
 
 #endif
