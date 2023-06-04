@@ -201,3 +201,10 @@ void ChatService::OneChat(const TcpConnectionPtr &conn,json &js,Timestamp time)
     // 存储离线信息
     _offlineMsgModel.insert(toid,js.ToString());
 }
+
+// 服务器异常，业务重置方法
+void ChatService::reset()
+{
+    // 把online状态的用户，设置成offline
+    _userModel.resetState();
+}

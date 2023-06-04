@@ -32,6 +32,8 @@ public:
     void clientCloseException(const TcpConnectionPtr &conn);
     // 获取消息对应的处理器
     MsgHandler getHandler(int msgid);
+    // 处理服务器异常退出
+    void reset();
 private:
     ChatService();
 
