@@ -82,6 +82,19 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
             response.Add("errno",0);
             response.Add("id",user.getId());
             response.Add("name",user.getName());
+
+            // 查询该用户是否有离线消息，有就读取出来
+            vector<string> msg = _offlineMsgModel.query(id);
+            if(!msg.empty())
+            {
+                for(vector<string>::iterator msgit = msg.begin(); msgit != msg.end(); msgit++)
+                {
+                    response.AddEmptySubArray("offlinemessage");
+                    response["offlinemessage"].Add(*msgit);
+                }
+                // 读取该用户的离线消息后，把该用户的所有离线消息删除掉
+                _offlineMsgModel.remove(id);
+            }
             conn->send(response.ToString());
         }
     }
@@ -185,4 +198,6 @@ void ChatService::OneChat(const TcpConnectionPtr &conn,json &js,Timestamp time)
             return;
         }
     }
+    // 存储离线信息
+    _offlineMsgModel.insert(toid,js.ToString());
 }

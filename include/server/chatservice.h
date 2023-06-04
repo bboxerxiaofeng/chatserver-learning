@@ -10,6 +10,7 @@ using namespace muduo;
 using namespace muduo::net;
 
 #include "usermodel.h"
+#include "offlinemessagemodel.h"
 #include "CJsonObject.hpp"
 using json = neb::CJsonObject;
 
@@ -42,6 +43,7 @@ private:
     mutex _connMutex;
     // 数据操作类对象
     UserModel _userModel;
+    OfflineMsgModel _offlineMsgModel;
 };
 
 #endif
