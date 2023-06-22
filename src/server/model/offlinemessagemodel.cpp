@@ -9,7 +9,7 @@ void OfflineMsgModel::insert(int userid, string msg)
 {
     // 1.组装sql语句
     char sql[1024] = {0};
-    sprintf(sql, "insert into OfflineMessage values(%d, '%s')", userid, msg.c_str());
+    sprintf(sql, "insert into offlineMessage values(%d, '%s')", userid, msg.c_str());
 
     MySQL mysql;
     if (mysql.connect())
@@ -24,7 +24,7 @@ void OfflineMsgModel::remove(int userid)
 {
     // 1.组装sql语句
     char sql[1024] = {0};
-    sprintf(sql, "delete from OfflineMessage where userid=%d", userid);
+    sprintf(sql, "delete from offlineMessage where userid=%d", userid);
 
     MySQL mysql;
     if(mysql.connect())
@@ -38,7 +38,7 @@ vector<string> OfflineMsgModel::query(int userid)
 {
     // 1.组装sql语句
     char sql[1024] = {0};
-    sprintf(sql, "select message from OfflineMessage where userid = %d", userid);
+    sprintf(sql, "select message from offlineMessage where userid = %d", userid);
     vector<string> msg;
     MySQL mysql;
     if( mysql.connect() )

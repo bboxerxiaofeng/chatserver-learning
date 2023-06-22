@@ -17,6 +17,11 @@ ChatService::ChatService()
     _msgHandlerMap.insert({REG_MSG,std::bind(&ChatService::reg,this,_1,_2,_3)});
     _msgHandlerMap.insert({ONECHAT_MSG,std::bind(&ChatService::oneChat,this,_1,_2,_3)});
     _msgHandlerMap.insert({ADDFRIEND_MSG,std::bind(&ChatService::addFriend,this,_1,_2,_3)});
+
+    // 群组业务管理相关事件处理回调注册
+    _msgHandlerMap.insert({CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({ADD_GROUP_MSG, std::bind(&ChatService::addGroup, this, _1, _2, _3)});
+    _msgHandlerMap.insert({GROUP_CHAT_MSG, std::bind(&ChatService::groupChat, this, _1, _2, _3)});
 }
 
 // 获取消息对应的处理器
@@ -92,8 +97,10 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
                 //for(vector<string>::iterator msgit = msg.begin(); msgit != msg.end(); msgit++)
                 for(auto &msgit : msg)
                 {
-                    // response["offlinemessage"].Add(*msgit);
-                    response["offlinemessage"].Add(msgit);
+                    json tmp(msgit);
+                    string message;
+                    tmp.Get("msg",message);
+                    response["offlinemessage"].Add(message);
                 }
                 // 读取该用户的离线消息后，把该用户的所有离线消息删除掉
                 _offlineMsgModel.remove(id);
@@ -101,6 +108,7 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
 
 
             // 查询该用户的好友信息并返回
+
             vector<User> userVec = _friendModel.query(id);
             if(!userVec.empty())
             {
@@ -111,10 +119,42 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
                     tmp.Add("name",user.getName());
                     tmp.Add("state",user.getState());
                     tmp.Add("id",user.getId());
-                    response["friend"].Add(tmp.ToString());
+                    response["friend"].AddAsFirst(tmp);
                 }
             }
 
+            // 查询该用户的群组信息
+            std::vector<Group> groupUserVec = m_groupModel.queryGroups(id);
+            if(!groupUserVec.empty())
+            {
+                // "group":[{"groupid":"xxx","groupName":"xxx","groupDesc":"xxx","users":["id":"xx","state":"xx"]}]  显示群成员时需要再多一层嵌套
+                response.AddEmptySubArray("group");
+                std::vector<string> groupVec;
+                for(Group &group : groupUserVec)
+                {
+                    json grouptmp;
+                    grouptmp.Add("groupid",group.getId());
+                    grouptmp.Add("groupName",group.getName());
+                    grouptmp.Add("groupDesc",group.getDesc());
+                    vector<string> userVec;
+                    for(GroupUser &user : group.gerUsers())
+                    {
+                        json usertmp;
+                        usertmp.Add("id",user.getId());
+                        usertmp.Add("name",user.getName());
+                        usertmp.Add("state",user.getState());
+                        usertmp.Add("role",user.getRole());
+                        grouptmp.AddEmptySubArray("users");
+                        grouptmp["users"].AddAsFirst(usertmp);
+                    }
+                    response["group"].AddAsFirst(grouptmp);
+                }
+            }
+
+            // std::cout << response.ToFormattedString() << std::endl;
+            // int ii = 0;
+            // response["group"][0].Get("groupid", ii);
+            // std::cout << "ii======" << ii << std::endl;
             conn->send(response.ToString());
         }
     }
@@ -239,4 +279,56 @@ void ChatService::addFriend(const TcpConnectionPtr &conn, json &js, Timestamp ti
 
     // 存储好友信息
     _friendModel.insert(userid, friendid);
+}
+
+void ChatService::createGroup(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    LOG_INFO << "do createGroup..." ;
+    
+    int userid;
+    std::string groupName,groupDesc;
+    js.Get("userid",userid);
+    js.Get("groupName",groupName);
+    js.Get("groupDesc",groupDesc);
+
+    // 存储新创建的群组信息
+    Group group(-1,groupName,groupDesc);   
+    if(m_groupModel.createGroup(group))
+    {
+        // 存储群组创建人信息
+        m_groupModel.addGroup(userid,group.getId(),"creator");
+    }
+    
+}
+
+void ChatService::addGroup(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    LOG_INFO << "do addGroup..." ;
+    int userid,groupid;
+    js.Get("userid",userid);
+    js.Get("groupid",groupid);
+
+    m_groupModel.addGroup(userid,groupid,"normal");
+}
+
+void ChatService::groupChat(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    LOG_INFO << "do groupChat..." ;
+    int userid,groupid;
+    js.Get("userid",userid);
+    js.Get("groupid",groupid);
+
+    std::vector<int> useridVec = m_groupModel.queryGroupUsers(userid,groupid);
+    lock_guard<mutex> lock(_connMutex);
+    for(int id : useridVec)
+    {
+        auto it = _userConnMap.find(id);
+        if(it != _userConnMap.end()) {
+            // 用户在线，转发消息
+            it->second->send(js.ToString());
+        }else{
+            // 用户不在线，存储离线消息
+            _offlineMsgModel.insert(id,js.ToString());
+        }
+    }
 }

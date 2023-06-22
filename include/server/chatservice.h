@@ -12,6 +12,7 @@ using namespace muduo::net;
 #include "usermodel.h"
 #include "offlinemessagemodel.h"
 #include "friendmodel.h"
+#include "groupmodel.h"
 #include "CJsonObject.hpp"
 using json = neb::CJsonObject;
 
@@ -37,6 +38,12 @@ public:
     void reset();
     // 处理添加好友业务
     void addFriend(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    // 新建群组业务
+    void createGroup(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    // 加入群组业务
+    void addGroup(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    // 群组聊天业务
+    void groupChat(const TcpConnectionPtr &conn, json &js, Timestamp time);
 private:
     ChatService();
 
@@ -50,6 +57,7 @@ private:
     UserModel _userModel;
     OfflineMsgModel _offlineMsgModel;
     FriendModel _friendModel;
+    GroupModel m_groupModel;
 };
 
 #endif
