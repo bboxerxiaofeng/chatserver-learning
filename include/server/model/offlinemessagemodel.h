@@ -3,20 +3,19 @@
 
 #include <string>
 #include <vector>
-using namespace std;
 
 // OfflineMessage表的数据操作类
 class OfflineMsgModel 
 {
 public:
     // 存储用户的离线消息
-    void insert(int userid, string msg);
+    void insert(int userid, std::string msg);
 
     // 删除用户的离线消息
     void remove(int userid);
 
     // 查询用户的离线消息
-    vector<string> query(int userid);
+    std::vector<std::string> query(int userid);
 };
 
 

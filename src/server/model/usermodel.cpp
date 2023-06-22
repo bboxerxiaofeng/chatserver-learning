@@ -2,8 +2,6 @@
 #include "mysql.h"
 #include <iostream>
 
-using namespace std;
-
 // User表的增加方法
 bool UserModel::insert(User &user)
 {

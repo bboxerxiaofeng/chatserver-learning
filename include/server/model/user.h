@@ -2,35 +2,34 @@
 #define USER_H
 
 #include <string>
-using namespace std;
 
 // User表的ORM类
 class User
 {
 public:
-    User(int id = -1,string name = "",string pwd = "",string state = "offline")
+    User(int id = -1,std::string name = "",std::string pwd = "",std::string state = "offline")
     {
-        this->id = id;
-        this->name = name;
-        this->password = pwd;
-        this->state = state;
+        m_id = id;
+        m_name = name;
+        m_password = pwd;
+        m_state = state;
     }
 
-    void setId(int id) { this->id = id; }
-    void setName(string name) { this->name = name; }
-    void setPwd(string pwd) { this->password = pwd; }
-    void setState(string state) { this->state = state; }
+    void setId(int id) { m_id = id; }
+    void setName(std::string name) { m_name = name; }
+    void setPwd(std::string pwd) { m_password = pwd; }
+    void setState(std::string state) { m_state = state; }
 
-    int getId() { return this->id; }
-    string getName() { return this->name; }
-    string getPwd() { return this->password; }
-    string getState() { return this->state; }
+    int getId() { return m_id; }
+    std::string getName() { return m_name; }
+    std::string getPwd() { return m_password; }
+    std::string getState() { return m_state; }
 
 private:
-    int id;
-    string name;
-    string password;
-    string state;
+    int m_id;
+    std::string m_name;
+    std::string m_password;
+    std::string m_state;
 };
 
 #endif

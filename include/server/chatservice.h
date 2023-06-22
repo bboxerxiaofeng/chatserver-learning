@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <functional>
 #include <mutex>
-using namespace std;
 using namespace muduo;
 using namespace muduo::net;
 
@@ -48,15 +47,15 @@ private:
     ChatService();
 
     // 存储消息id和其对应的业务处理方法
-    unordered_map<int,MsgHandler> _msgHandlerMap;
+    std::unordered_map<int,MsgHandler> m_msgHandlerMap;
     // 存储在线用户的通信连接
-    unordered_map<int,TcpConnectionPtr> _userConnMap;
-    // 定义互斥锁，保证_userConnMap的线程安全
-    mutex _connMutex;
+    std::unordered_map<int,TcpConnectionPtr> m_userConnMap;
+    // 定义互斥锁，保证m_userConnMap的线程安全
+    std::mutex m_connMutex;
     // 数据操作类对象
-    UserModel _userModel;
-    OfflineMsgModel _offlineMsgModel;
-    FriendModel _friendModel;
+    UserModel m_userModel;
+    OfflineMsgModel m_offlineMsgModel;
+    FriendModel m_friendModel;
     GroupModel m_groupModel;
 };
 

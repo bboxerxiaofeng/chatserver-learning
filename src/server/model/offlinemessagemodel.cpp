@@ -2,10 +2,8 @@
 #include "mysql.h"
 #include <iostream>
 
-using namespace std;
-
 // 存储用户的离线消息
-void OfflineMsgModel::insert(int userid, string msg)
+void OfflineMsgModel::insert(int userid, std::string msg)
 {
     // 1.组装sql语句
     char sql[1024] = {0};
@@ -34,12 +32,12 @@ void OfflineMsgModel::remove(int userid)
 }
 
 // 查询用户的离线消息
-vector<string> OfflineMsgModel::query(int userid)
+std::vector<std::string> OfflineMsgModel::query(int userid)
 {
     // 1.组装sql语句
     char sql[1024] = {0};
     sprintf(sql, "select message from offlineMessage where userid = %d", userid);
-    vector<string> msg;
+    std::vector<std::string> msg;
     MySQL mysql;
     if( mysql.connect() )
     {

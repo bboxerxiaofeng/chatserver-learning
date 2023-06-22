@@ -28,22 +28,22 @@ class ChatServer
 public:
     ChatServer(EventLoop *loop,               // 事件循环
                const InetAddress &listenAddr, // IP+Port
-               const string &nameArg)
-        : _server(loop, listenAddr, nameArg), _loop(loop)
+               const std::string &nameArg)
+        : m_server(loop, listenAddr, nameArg), m_loop(loop)
     {
         // 给服务器注册用户连接的创建和断开回调
-        _server.setConnectionCallback(std::bind(&ChatServer::onConnection, this, _1)); // 这里function传入的是一个参数，但是onConnection还需要this指针，所以需要提前绑定
+        m_server.setConnectionCallback(std::bind(&ChatServer::onConnection, this, _1)); // 这里function传入的是一个参数，但是onConnection还需要this指针，所以需要提前绑定
 
         // 给服务器注册用户读写事件回调
-        _server.setMessageCallback(std::bind(&ChatServer::onMessage, this, _1, _2, _3));
+        m_server.setMessageCallback(std::bind(&ChatServer::onMessage, this, _1, _2, _3));
 
         // 设置服务器端的线程数量 1个I/O线程   3个worker线程
-        _server.setThreadNum(4);
+        m_server.setThreadNum(4);
     }
 
     void start()
     {
-        _server.start();
+        m_server.start();
     }
 
 private:
@@ -52,13 +52,13 @@ private:
     {
         if (conn->connected())
         {
-            cout << conn->peerAddress().toIpPort() << " -> " << conn->localAddress().toIpPort() << " state:online" << endl;
+            std::cout << conn->peerAddress().toIpPort() << " -> " << conn->localAddress().toIpPort() << " state:online" << std::endl;
         }
         else
         {
-            cout << conn->peerAddress().toIpPort() << " -> " << conn->localAddress().toIpPort() << " state:offline" << endl;
+            std::cout << conn->peerAddress().toIpPort() << " -> " << conn->localAddress().toIpPort() << " state:offline" << std::endl;
             conn->shutdown(); // close(fd)
-            // _loop->quit();
+            // m_loop->quit();
         }
     }
 
@@ -67,13 +67,13 @@ private:
                    Buffer *buffer,               // 缓冲区
                    Timestamp time)               // 接收到数据的时间信息
     {
-        string buf = buffer->retrieveAllAsString();
-        cout << "recv data:" << buf << " time:" << time.toFormattedString() << endl;
+        std::string buf = buffer->retrieveAllAsString();
+        std::cout << "recv data:" << buf << " time:" << time.toFormattedString() << std::endl;
         conn->send(buf);
     }
 
-    TcpServer _server; // #1
-    EventLoop *_loop;  // #2 epoll
+    TcpServer m_server; // #1
+    EventLoop *m_loop;  // #2 epoll
 };
 
 int main()

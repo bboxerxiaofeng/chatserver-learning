@@ -24,7 +24,7 @@ bool GroupModel::createGroup(Group &group)
 }
 
 // 加入群组
-void GroupModel::addGroup(int userid, int groupid, string role)
+void GroupModel::addGroup(int userid, int groupid, std::string role)
 {
     // 1.组装sql语句
     char sql[1024] = {0};
@@ -50,7 +50,7 @@ std::vector<Group> GroupModel::queryGroups(int userid)
          groupUser b on a.id = b.groupid where b.userid=%d",
             userid);
 
-    vector<Group> groupVec;
+    std::vector<Group> groupVec;
 
     MySQL mysql;
     if(mysql.connect())
@@ -102,8 +102,9 @@ std::vector<int> GroupModel::queryGroupUsers(int userid, int groupid)
 {
     char sql[1024] = {0};
     sprintf(sql, "select userid from groupUser where groupid = %d and userid != %d",groupid, userid);
-
-    vector<int> useridVec;
+    std::cout << "群成员查询sql" << sql << std::endl;
+    
+    std::vector<int> useridVec;
 
     MySQL mysql;
     if(mysql.connect())
