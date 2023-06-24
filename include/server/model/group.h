@@ -34,7 +34,7 @@ public:
     int getId() { return m_id; }
     std::string getName() { return m_name; }
     std::string getDesc() { return m_desc; }
-    std::vector<GroupUser> &gerUsers() { return m_users; }
+    std::vector<GroupUser> &getUsers() { return m_users; }
 
 private:
     int m_id;

@@ -112,14 +112,14 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
             std::vector<User> userVec = m_friendModel.query(id);
             if(!userVec.empty())
             {
-                response.AddEmptySubArray("friend");
+                response.AddEmptySubArray("friends");
                 for (User &user : userVec)
                 {
                     json tmp;
                     tmp.Add("name",user.getName());
                     tmp.Add("state",user.getState());
                     tmp.Add("id",user.getId());
-                    response["friend"].AddAsFirst(tmp);
+                    response["friends"].AddAsFirst(tmp);
                 }
             }
 
@@ -127,8 +127,8 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
             std::vector<Group> groupUserVec = m_groupModel.queryGroups(id);
             if(!groupUserVec.empty())
             {
-                // "group":[{"groupid":"xxx","groupName":"xxx","groupDesc":"xxx","users":["id":"xx","state":"xx"]}]  显示群成员时需要再多一层嵌套
-                response.AddEmptySubArray("group");
+                // "groups":[{"groupid":"xxx","groupName":"xxx","groupDesc":"xxx","users":["id":"xx","state":"xx"]}]  显示群成员时需要再多一层嵌套
+                response.AddEmptySubArray("groups");
                 std::vector<std::string> groupVec;
                 for(Group &group : groupUserVec)
                 {
@@ -137,7 +137,7 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
                     grouptmp.Add("groupName",group.getName());
                     grouptmp.Add("groupDesc",group.getDesc());
                     std::vector<std::string> userVec;
-                    for(GroupUser &user : group.gerUsers())
+                    for(GroupUser &user : group.getUsers())
                     {
                         json usertmp;
                         usertmp.Add("id",user.getId());
@@ -147,7 +147,7 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
                         grouptmp.AddEmptySubArray("users");
                         grouptmp["users"].AddAsFirst(usertmp);
                     }
-                    response["group"].AddAsFirst(grouptmp);
+                    response["groups"].AddAsFirst(grouptmp);
                 }
             }
 

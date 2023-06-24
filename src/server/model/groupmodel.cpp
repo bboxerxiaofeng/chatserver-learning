@@ -89,7 +89,7 @@ std::vector<Group> GroupModel::queryGroups(int userid)
                 user.setName(row[1]);
                 user.setState(row[2]);
                 user.setRole(row[3]);
-                group.gerUsers().push_back(user);
+                group.getUsers().push_back(user);
             }
             mysql_free_result(res);
         }

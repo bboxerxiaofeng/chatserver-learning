@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 aux_source_directory(. SRC_LIST)
 aux_source_directory(./db DB_LIST)
 aux_source_directory(./model MODEL_LIST)
-aux_source_directory(/home/moduo/thridparty/CJsonObject-master/ JSON_LIST )
+aux_source_directory(../../thridparty/CJsonObject-master/ JSON_LIST )
 
 # 指定生成可执行文件
 add_executable(ChatServer ${SRC_LIST} ${JSON_LIST} ${DB_LIST} ${MODEL_LIST})

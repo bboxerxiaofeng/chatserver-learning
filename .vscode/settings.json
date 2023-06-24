@@ -49,6 +49,7 @@
         "type_traits": "cpp",
         "utility": "cpp",
         "typeindex": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "thread": "cpp"
     }
 }
