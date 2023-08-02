@@ -13,10 +13,12 @@ ChatService* ChatService::instance()
 // 注册消息以及对应的Handler回调操作
 ChatService::ChatService()
 {
+    // 用户基本业务管理相关事件处理回调注册
     m_msgHandlerMap.insert({LOGIN_MSG,std::bind(&ChatService::login,this,_1,_2,_3)});
+    m_msgHandlerMap.insert({LOGINOUT_MSG, std::bind(&ChatService::loginout, this, _1, _2, _3)});
     m_msgHandlerMap.insert({REG_MSG,std::bind(&ChatService::reg,this,_1,_2,_3)});
-    m_msgHandlerMap.insert({ONECHAT_MSG,std::bind(&ChatService::oneChat,this,_1,_2,_3)});
-    m_msgHandlerMap.insert({ADDFRIEND_MSG,std::bind(&ChatService::addFriend,this,_1,_2,_3)});
+    m_msgHandlerMap.insert({ONE_CHAT_MSG,std::bind(&ChatService::oneChat,this,_1,_2,_3)});
+    m_msgHandlerMap.insert({ADD_FRIEND_MSG,std::bind(&ChatService::addFriend,this,_1,_2,_3)});
 
     // 群组业务管理相关事件处理回调注册
     m_msgHandlerMap.insert({CREATE_GROUP_MSG, std::bind(&ChatService::createGroup, this, _1, _2, _3)});
@@ -151,7 +153,7 @@ void ChatService::login(const TcpConnectionPtr &conn,json &js,Timestamp time)
                 }
             }
 
-            // std::cout << response.ToFormattedString() << std::endl;
+            std::cout << "登录成功,回复信息" << response.ToFormattedString() << std::endl;
             // int ii = 0;
             // response["group"][0].Get("groupid", ii);
             // std::cout << "ii======" << ii << std::endl;
@@ -214,6 +216,25 @@ void ChatService::reg(const TcpConnectionPtr &conn,json &js,Timestamp time)
     }
 }
 
+// 处理注销业务
+void ChatService::loginout(const TcpConnectionPtr &conn, json &js, Timestamp time)
+{
+    LOG_INFO << "do loginout..." ;
+    int userid;
+    js.Get("userid",userid);
+    {
+        std::lock_guard<std::mutex> lock(m_connMutex);
+        auto it = m_userConnMap.find(userid);
+        if (it != m_userConnMap.end())
+        {
+            m_userConnMap.erase(it);
+        }
+    }
+    // 更新用户的状态信息
+    User user(userid, "", "", "offline");
+    m_userModel.updateState(user);
+}
+
 void ChatService::clientCloseException(const TcpConnectionPtr &conn)
 {
     std::cout << "clientCloseException: m_userConnMap"<< m_userConnMap.size() << std::endl;
@@ -253,11 +274,13 @@ void ChatService::oneChat(const TcpConnectionPtr &conn,json &js,Timestamp time)
         auto it = m_userConnMap.find(toid);
         if (it != m_userConnMap.end())
         {
+            LOG_INFO << "对方在线,发送消息" ;
             // toid在线，转发消息   服务器主动推送消息给toid用户
             it->second->send(js.ToString());
             return;
         }
     }
+    LOG_INFO << "对方不在线,存储为离线消息" ;
     // 存储离线信息
     m_offlineMsgModel.insert(toid,js.ToString());
 }

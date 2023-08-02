@@ -33,7 +33,7 @@ public:
     void clientCloseException(const TcpConnectionPtr &conn);
     // 获取消息对应的处理器
     MsgHandler getHandler(int msgid);
-    // 处理服务器异常退出
+    // 处理服务器异常退出，业务重置
     void reset();
     // 处理添加好友业务
     void addFriend(const TcpConnectionPtr &conn, json &js, Timestamp time);
@@ -43,6 +43,8 @@ public:
     void addGroup(const TcpConnectionPtr &conn, json &js, Timestamp time);
     // 群组聊天业务
     void groupChat(const TcpConnectionPtr &conn, json &js, Timestamp time);
+    // 处理注销业务
+    void loginout(const TcpConnectionPtr &conn, json &js, Timestamp time);
 private:
     ChatService();
 
